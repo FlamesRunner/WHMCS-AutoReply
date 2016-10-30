@@ -1,36 +1,66 @@
 #!/bin/bash
-# Just for the record, I was lazy so you need to put in your credentials twice - once in this file and once in the get_tickets.sh file.
 
-bash get_tickets.sh
+echo <<EOT
+__        ___   _ __  __  ____ ____  
+\ \      / / | | |  \/  |/ ___/ ___| 
+ \ \ /\ / /| |_| | |\/| | |   \___ \ 
+  \ V  V / |  _  | |  | | |___ ___) |
+   \_/\_/  |_| |_|_|  |_|\____|____/ 
+    _   _   _ _____ ___  ____  _____ ____  _  __   __
+   / \ | | | |_   _/ _ \|  _ \| ____|  _ \| | \ \ / /
+  / _ \| | | | | || | | | |_) |  _| | |_) | |  \ V / 
+ / ___ \ |_| | | || |_| |  _ <| |___|  __/| |___| |  
+/_/   \_\___/  |_| \___/|_| \_\_____|_|   |_____|_|
+=========================================================
+EOT
 
-mostrecent=$(php most_recent_ticket.php)
+# Grab configuration from config.sh
+source config.sh
 
-whmcsurl="https://yourbillingsite.com/clients/admin"
+while true;
+do
+	# Save the WHMCS cookies in a file... (login process)
+	echo "Logging into WHMCS admin..."
+	curl -d "username=$USERNAME&password=$PASSWORD" $WHMCS_URL/dologin.php -c .tmp/cookie.txt -s
 
-curl -d 'username=yourusername&password=asupersecurepassword' $whmcsurl/dologin.php -c cookie.txt -s
+	# Use the WHMCS cookies retrieved
+	echo "Getting support tickets..."
+	curl -b .tmp/cookie.txt "$WHMCS_URL/supporttickets.php" 2>/dev/null > .tmp/tickets.txt
 
-echo "Newest ticket ID: $mostrecent"
+	# Retrieve the latest ticket ID and output
+	LATEST_TICKET_ID=$(php scripts/getLatestTicket.php)
+	echo "Latest ticket ID: $LATEST_TICKET_ID"
 
-curl -b cookie.txt "$whmcsurl/supporttickets.php?action=view&id=$mostrecent" 2>/dev/null > ticketcontents.txt
+	echo "Getting ticket contents..."
+	curl -b .tmp/cookie.txt "$WHMCS_URL/supporttickets.php?action=view&id=$LATEST_TICKET_ID" 2>/dev/null > .tmp/ticketcontents.txt
 
-echo "Checking if the ticket matches keywords..."
+	echo "Checking if the ticket contains the preset keywords..."
+	TICKET_CONTENTS=`cat .tmp/ticketcontents.txt`
 
-c=`cat ticketcontents.txt`
+	REPLY=false
 
-d=`echo $c | grep -e "127.0.0.1" -e "vps is offline" -e "HKG" -e "downtime" -e "reinstall"`
+	for i in $KEYWORDS; do
+		if [[ -z "$(echo $TICKET_CONTENTS | grep -e $i)" ]]; then
+			$REPLY=true
+			break
+		fi
+	done
 
-if [ -z "$d" ]; then
+	if [ $REPLY == 'false' ];
+	then
+		echo "The ticket did not return any results. Will not do anything."
 
-echo "The ticket did not return any results. Will not do anything."
+	else
+		echo "The ticket matches a keyword - executing response system..."
 
-else
+		CSRF_TOKEN=$(php scripts/getCSRFtoken.php)
+		curl -b cookie.txt -s --data "token=$CSRF_TOKEN&message=Test reply&postreply=1&status=Answered&priority=Medium&flagto=nochange&deptid=nochange&returntolist=1&billingaction=0" "$WHMCS_URL/supporttickets.php?action=viewticket&id=$LATEST_TICKET_ID"
 
-echo "The ticket matches a keyword - executing response system..."
+		echo "Dropped response."
+	fi
 
-csrf=`php get_csrf.php`
-
-curl -b cookie.txt -s --data "token=$csrf&message=Test reply&postreply=1&status=Answered&priority=Medium&flagto=nochange&deptid=nochange&returntolist=1&billingaction=0" "$whmcsurl/supporttickets.php?action=viewticket&id=$mostrecent"
-
-echo "Dropped response."
-
-fi
+	echo "========================================================="
+	echo ""
+	echo "Sleeping for $(expr $TIME_BETWEEN_CHECKS/60) minutes..."
+	sleep TIME_BETWEEN_CHECKS
+done
