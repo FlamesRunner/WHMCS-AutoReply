@@ -10,7 +10,7 @@
 	$tickets = $whmcsObject->getTickets();
 	if ($tickets["result"] == "failiure") die("Could not obtain tickets.");
 
-	if ($tickets["totalresults"]) == "0") die("No tickets need to be replied to at this time.");
+	if ($tickets["totalresults"] == "0") die("No tickets need to be replied to at this time.");
 	foreach ($tickets["tickets"]["ticket"] as $ticket) {
 		$ticketArray = $whmcsObject->fetchTicket($ticket["tid"]);
 		$shouldReply = false;
