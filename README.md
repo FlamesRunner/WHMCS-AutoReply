@@ -8,7 +8,11 @@ Save time for more important things and tickets to handle, tickets with repetiti
 
 ### Installation
 
+**Old version:**
 Fill in your details in config.sh, and feel free to run this on supervisor to keep this alive. You're welcome.
+
+**New version:**
+This version is based on PHP. Check the "new" branch to use that version. 
 
 ### Contributing and to-dos
 
