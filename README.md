@@ -8,7 +8,7 @@ Save time for more important things and tickets to handle, tickets with repetiti
 
 ### Installation
 
-Fill in your details in config.sh, and feel free to run this on supervisor to keep this alive. You're welcome.
+Extract the repository and copy the files within src/ to somewhere safe. You will need to fill in the credentials in "config.php" and set up a cronjob to cron.php that runs every 10 minutes.
 
 ### Contributing and to-dos
 
