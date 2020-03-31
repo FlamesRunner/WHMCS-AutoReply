@@ -31,12 +31,7 @@
 				"password" => $this->api_pass,
 				"responsetype" => "json"
 			));
-			if (is_array($resp)) {
-				if ($resp["result"] == "success") return true; // Authentication success
-				return false; // Authentication failed
-			} else {
-				return false; // cURL issue
-			}
+			return (is_array($resp) && $resp["result"] == "success"); // Authentication success
 		}
 
 		public function getTickets() {
@@ -47,14 +42,8 @@
 				"status" => "Awaiting Reply",
 				"responsetype" => "json"
 			));
-			if (is_array($resp)) {
-				if ($resp["result"] == "success") {
-					return $resp;
-				}
-				return array("result" => "failiure");
-			} else {
-				return array("result" => "failiure");
-			}
+			if (is_array($resp) && $resp["result"] == "success") return $resp;
+			return array("result" => "failiure");
 		}
 
 		public function fetchTicket($ticketID) {
@@ -64,15 +53,8 @@
 				"password" => $this->api_pass,
 				"responsetype" => "json"
 			));
-			if (is_array($resp)) {
-				if ($resp["result"] == "success") {
-					return $resp;
-				} else {
-					return array("result" => "failiure");
-				}
-			} else {
-				return array("result" => "failiure");
-			}	
+			if (is_array($resp) && $resp["result"] == "success") return $resp;
+			return array("result" => "failiure");	
 		}
 
 		public function ticketReply($ticketID, $message) {
