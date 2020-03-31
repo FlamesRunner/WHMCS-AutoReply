@@ -13,11 +13,11 @@
 	if ($tickets["totalresults"]) == "0") die("No tickets need to be replied to at this time.");
 	foreach ($tickets["tickets"]["ticket"] as $ticket) {
 		$ticketArray = $whmcsObject->fetchTicket($ticket["tid"]);
-		$shouldReply = false;
+		$keywordsFound = 0;
 		foreach ($keywords as $word) {
-			if (strpos($ticketArray["replies"]["reply"][0], $word)) $shouldReply = true;
+			if (strpos($ticketArray["replies"]["reply"][0], $word)) $keywordsFound++; // I'm aware this will only locate the first occurrence. This is intended. 
 		}
-		if ($shouldReply) {
+		if ($keywordsFound >= $keywordsFoundUntilReply) {
 			$res = $whmcsObject->ticketReply($ticket["tid"], $cannedMessage);
 			if ($res) {
 				echo "Successfully replied to ticket " . $ticket["tid"] . ".";
