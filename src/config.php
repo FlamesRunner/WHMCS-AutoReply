@@ -5,7 +5,7 @@
 		WHMCS_APIID: Enter your WHMCS API username.
 		WHMCS_SECRET: Enter your WHMCS API secret.
 		$keywords: The array of 'keywords' to look for to determine whether or not to automatically reply.
-		$keywordsFoundUntilReply: The number of keywords we're looking for in a message before we send the canned reply.
+		$keywordsFoundUntilReply: The number of keywords we're looking for in a message before we send the canned reply. This is inclusive; that is, if you set this to 3, on the third keyword found we will send the message.
 		$cannedMessage: The canned message to send.
 	*/
 
